@@ -1,99 +1,116 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { SupabaseClient } from "@supabase/supabase-js"
 
-export const dynamic = "force-dynamic" // Corrected: hyphen instead of underscore
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { createSupabaseClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import Link from "next/link"
+import { Loader2, CheckCircle, ArrowLeft } from "lucide-react"
 
 export default function ForgotPasswordPage() {
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null)
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
-
-  useEffect(() => {
-    setSupabase(getSupabaseBrowserClient())
-  }, [])
+  const supabase = createSupabaseClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    if (!supabase) {
-      setError("Supabase client not initialized. Please try again.")
-      setLoading(false)
-      return
-    }
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/update-password`,
-    })
+      if (resetError) {
+        setError(resetError.message)
+        return
+      }
 
-    if (resetError) {
-      setError(resetError.message)
-    } else {
       setSuccess(true)
+    } catch (err: any) {
+      setError("An unexpected error occurred. Please try again.")
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
-  if (!supabase) {
+  if (success) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <p className="text-gray-600">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
+            <CardTitle className="text-2xl font-bold text-green-700">Check your email</CardTitle>
+            <CardDescription>
+              We've sent a password reset link to <strong>{email}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-sm text-gray-600 mb-4">Click the link in the email to reset your password.</p>
+            <Button variant="outline" onClick={() => router.push("/auth/login")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Login
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Forgot Password</h2>
-        {success ? (
-          <div className="text-green-500 text-center mb-4">Check your email for a password reset link.</div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-                Email
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Reset password</CardTitle>
+          <CardDescription className="text-center">
+            Enter your email address and we'll send you a reset link
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
                 id="email"
                 type="email"
-                placeholder="Email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
-            {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-            <div className="flex items-center justify-between">
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? "Sending..." : "Reset Password"}
-              </button>
-              <button
-                className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
-                onClick={() => router.push("/auth/login")}
-                type="button"
-              >
-                Back to Login
-              </button>
-            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Send reset link
+            </Button>
           </form>
-        )}
-      </div>
+
+          <div className="mt-6 text-center text-sm">
+            <Link href="/auth/login" className="text-blue-600 hover:underline flex items-center justify-center">
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Back to Login
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

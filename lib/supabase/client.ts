@@ -32,3 +32,5 @@ export function getSupabaseBrowserClient() {
   }
   return supabaseBrowserClient
 }
+
+export const createSupabaseClient = getSupabaseBrowserClient
