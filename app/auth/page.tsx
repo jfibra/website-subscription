@@ -4,42 +4,155 @@ import type React from "react"
 
 import { motion } from "framer-motion"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { createSupabaseClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+  const [successEmail, setSuccessEmail] = useState("")
   const [loginData, setLoginData] = useState({ email: "", password: "" })
   const [registerData, setRegisterData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
 
+  const router = useRouter()
+  const supabase = createSupabaseClient()
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate login
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
-    // Redirect to dashboard
-    window.location.href = "/dashboard"
+    setError(null)
+
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: loginData.email,
+        password: loginData.password,
+      })
+
+      if (signInError) {
+        setError(signInError.message)
+        return
+      }
+
+      if (data.user) {
+        // Get user role to determine redirect
+        const { data: profile } = await supabase.from("users").select("roles(name)").eq("id", data.user.id).single()
+
+        // @ts-ignore
+        const userRole = profile?.roles?.name
+
+        if (userRole === "admin") {
+          router.push("/admin/dashboard")
+        } else {
+          router.push("/user/dashboard")
+        }
+      }
+    } catch (err: any) {
+      setError("An unexpected error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate registration
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
-    // Redirect to dashboard
-    window.location.href = "/dashboard"
+    setError(null)
+
+    // Validate passwords match
+    if (registerData.password !== registerData.confirmPassword) {
+      setError("Passwords do not match")
+      setIsLoading(false)
+      return
+    }
+
+    // Validate password strength
+    if (registerData.password.length < 6) {
+      setError("Password must be at least 6 characters long")
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: registerData.email,
+        password: registerData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            first_name: registerData.firstName,
+            last_name: registerData.lastName,
+            full_name: `${registerData.firstName} ${registerData.lastName}`,
+          },
+        },
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        return
+      }
+
+      if (data.user) {
+        setSuccess(true)
+        setSuccessEmail(registerData.email)
+      }
+    } catch (err: any) {
+      setError("An unexpected error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen pt-16 gradient-bg flex items-center justify-center">
+        <div className="max-w-md w-full mx-4">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <Card className="shadow-xl rounded-xl">
+              <CardContent className="p-8 text-center">
+                <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
+                <h2 className="text-2xl font-bold text-green-700 mb-2">Check your email</h2>
+                <p className="text-gray-600 mb-4">
+                  We've sent a confirmation link to <strong>{successEmail}</strong>
+                </p>
+                <p className="text-sm text-gray-500 mb-6">
+                  Click the link in the email to confirm your account and complete registration.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSuccess(false)
+                    setRegisterData({
+                      firstName: "",
+                      lastName: "",
+                      email: "",
+                      password: "",
+                      confirmPassword: "",
+                    })
+                  }}
+                >
+                  Back to Login
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -77,6 +190,7 @@ export default function AuthPage() {
                           placeholder="your@email.com"
                           value={loginData.email}
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -95,6 +209,7 @@ export default function AuthPage() {
                           placeholder="Enter your password"
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                          disabled={isLoading}
                         />
                         <button
                           type="button"
@@ -114,10 +229,16 @@ export default function AuthPage() {
                         />
                         <span className="ml-2 text-sm text-gray-600">Remember me</span>
                       </label>
-                      <a href="#" className="text-sm text-blue-600 hover:text-blue-500">
+                      <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
                         Forgot password?
-                      </a>
+                      </Link>
                     </div>
+
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
 
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? "Signing in..." : "Sign In"}
@@ -128,20 +249,37 @@ export default function AuthPage() {
 
                 <TabsContent value="register" className="p-6 space-y-4">
                   <form onSubmit={handleRegister} className="space-y-4">
-                    <div>
-                      <label htmlFor="register-name" className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="register-firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                          First Name
+                        </label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                          <Input
+                            id="register-firstName"
+                            type="text"
+                            required
+                            className="pl-10"
+                            placeholder="John"
+                            value={registerData.firstName}
+                            onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
+                            disabled={isLoading}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="register-lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                          Last Name
+                        </label>
                         <Input
-                          id="register-name"
+                          id="register-lastName"
                           type="text"
                           required
-                          className="pl-10"
-                          placeholder="Your full name"
-                          value={registerData.name}
-                          onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                          placeholder="Doe"
+                          value={registerData.lastName}
+                          onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -160,6 +298,7 @@ export default function AuthPage() {
                           placeholder="your@email.com"
                           value={registerData.email}
                           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -178,6 +317,7 @@ export default function AuthPage() {
                           placeholder="Create a password"
                           value={registerData.password}
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                          disabled={isLoading}
                         />
                         <button
                           type="button"
@@ -203,6 +343,7 @@ export default function AuthPage() {
                           placeholder="Confirm your password"
                           value={registerData.confirmPassword}
                           onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -215,15 +356,21 @@ export default function AuthPage() {
                       />
                       <span className="ml-2 text-sm text-gray-600">
                         I agree to the{" "}
-                        <a href="#" className="text-blue-600 hover:text-blue-500">
+                        <Link href="/terms" className="text-blue-600 hover:text-blue-500">
                           Terms of Service
-                        </a>{" "}
+                        </Link>{" "}
                         and{" "}
-                        <a href="#" className="text-blue-600 hover:text-blue-500">
+                        <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
                           Privacy Policy
-                        </a>
+                        </Link>
                       </span>
                     </div>
+
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
 
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? "Creating account..." : "Create Account"}
