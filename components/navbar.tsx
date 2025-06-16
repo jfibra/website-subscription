@@ -4,8 +4,18 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ChevronDown } from "lucide-react"
+import { Menu, X, ChevronDown, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { createSupabaseClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 const navItems = [
   {
@@ -40,6 +50,12 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<number | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const router = useRouter()
+  const supabase = createSupabaseClient()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,6 +64,45 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Get user session and profile
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        setUser(session?.user || null)
+
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from("users")
+            .select("first_name, last_name, profile_image")
+            .eq("id", session.user.id)
+            .single()
+          setUserProfile(profile)
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    getUser()
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null)
+      if (!session?.user) {
+        setUserProfile(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase])
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -81,6 +136,16 @@ export function Navbar() {
     setIsMobileMenuOpen(!isMobileMenuOpen)
     if (isMobileMenuOpen) {
       setActiveSubmenu(null)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push("/auth")
+      router.refresh()
+    } catch (error) {
+      console.error("Error logging out:", error)
     }
   }
 
@@ -152,11 +217,59 @@ export function Navbar() {
               </div>
             ))}
 
-            <Link href="/auth" className="ml-4">
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all">
-                Get Started
-              </Button>
-            </Link>
+            {/* User Authentication */}
+            {!isLoading && (
+              <>
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-10 w-10 rounded-full ml-4">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={userProfile?.profile_image || ""} />
+                          <AvatarFallback className="bg-blue-100 text-blue-600">
+                            {userProfile?.first_name?.[0] || user.email?.[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <div className="flex items-center justify-start gap-2 p-2">
+                        <div className="flex flex-col space-y-1 leading-none">
+                          <p className="font-medium">
+                            {userProfile?.first_name} {userProfile?.last_name}
+                          </p>
+                          <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/user/dashboard" className="cursor-pointer">
+                          <User className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/user/profile" className="cursor-pointer">
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link href="/auth" className="ml-4">
+                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all">
+                      Get Started
+                    </Button>
+                  </Link>
+                )}
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -230,11 +343,50 @@ export function Navbar() {
                     )}
                   </div>
                 ))}
-                <div className="px-3 py-3">
-                  <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700">Get Started</Button>
-                  </Link>
-                </div>
+
+                {/* Mobile User Menu */}
+                {!isLoading && (
+                  <div className="border-t pt-3 mt-3">
+                    {user ? (
+                      <>
+                        <div className="px-3 py-2 text-sm text-gray-600">
+                          {userProfile?.first_name} {userProfile?.last_name}
+                          <br />
+                          <span className="text-xs">{user.email}</span>
+                        </div>
+                        <Link
+                          href="/user/dashboard"
+                          className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Dashboard
+                        </Link>
+                        <Link
+                          href="/user/profile"
+                          className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Profile
+                        </Link>
+                        <button
+                          onClick={() => {
+                            handleLogout()
+                            setIsMobileMenuOpen(false)
+                          }}
+                          className="block w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
+                        >
+                          Logout
+                        </button>
+                      </>
+                    ) : (
+                      <div className="px-3 py-3">
+                        <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
+                          <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700">Get Started</Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
