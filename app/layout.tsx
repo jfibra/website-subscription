@@ -2,14 +2,16 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Plus_Jakarta_Sans } from "next/font/google"
 import "./globals.css"
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import { Toaster } from "@/components/ui/toaster"
 import Script from "next/script"
+import { ConditionalLayoutWrapper } from "@/components/layout/conditional-layout-wrapper"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-plus-jakarta" })
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-plus-jakarta",
+})
 
 export const metadata: Metadata = {
   title: "WebFlow Pro - Monthly Website Subscriptions",
@@ -32,9 +34,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-inter antialiased">
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        <ConditionalLayoutWrapper>{children}</ConditionalLayoutWrapper>
         <ScrollToTop />
         <Toaster />
       </body>

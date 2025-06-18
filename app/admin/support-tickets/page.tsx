@@ -1,56 +1,30 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { MessageSquare } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { MoreHorizontal, MessageSquare } from "lucide-react"
+import Link from "next/link"
 import type { Database } from "@/types/supabase"
 
 type SupportTicket = Database["public"]["Tables"]["support_tickets"]["Row"] & {
-  users: { first_name: string | null; last_name: string | null; auth_users: { email: string | null } | null } | null
+  users: { first_name: string | null; last_name: string | null } | null
 }
 
 export default async function AdminSupportTicketsPage() {
   const supabase = createSupabaseServerClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    redirect("/auth/login")
-  }
-
-  // Ensure only admins can access this page
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("roles(name)")
-    .eq("id", session.user.id)
-    .single()
-
-  // @ts-ignore
-  if (profileError || profile?.roles?.name !== "admin") {
-    redirect("/user/dashboard?error=unauthorized")
-  }
 
   const { data: tickets, error: ticketsError } = await supabase
     .from("support_tickets")
     .select(`
-      id,
-      subject,
-      message,
-      priority,
-      status,
-      created_at,
-      users(
-        first_name,
-        last_name,
-        auth_users:auth.users(email)
-      )
+      *,
+      users(first_name, last_name)
     `)
     .eq("is_deleted", false)
     .order("created_at", { ascending: false })
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string | null) => {
     switch (priority) {
       case "urgent":
         return "bg-red-100 text-red-800"
@@ -65,7 +39,7 @@ export default async function AdminSupportTicketsPage() {
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     switch (status) {
       case "open":
         return "bg-red-100 text-red-800"
@@ -81,13 +55,14 @@ export default async function AdminSupportTicketsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold mb-8 font-plus-jakarta">Support Tickets</h1>
-
+    <div className="flex flex-col gap-8">
+      <h1 className="text-3xl font-bold font-plus-jakarta">Support Tickets</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5" /> All Tickets
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" /> All Tickets
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -104,7 +79,9 @@ export default async function AdminSupportTicketsPage() {
                     <TableHead>Priority</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created At</TableHead>
-                    <TableHead>Message</TableHead>
+                    <TableHead>
+                      <span className="sr-only">Actions</span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -112,21 +89,30 @@ export default async function AdminSupportTicketsPage() {
                     <TableRow key={ticket.id}>
                       <TableCell className="font-medium">{ticket.subject}</TableCell>
                       <TableCell>
-                        {ticket.users?.first_name} {ticket.users?.last_name} ({ticket.users?.auth_users?.email})
+                        {ticket.users?.first_name} {ticket.users?.last_name}
                       </TableCell>
                       <TableCell>
-                        <Badge className={getPriorityColor(ticket.priority)}>
-                          {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-                        </Badge>
+                        <Badge className={getPriorityColor(ticket.priority)}>{ticket.priority}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(ticket.status)}>
-                          {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace("_", " ")}
-                        </Badge>
+                        <Badge className={getStatusColor(ticket.status)}>{ticket.status?.replace("_", " ")}</Badge>
                       </TableCell>
                       <TableCell>{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell className="max-w-[300px] truncate text-sm text-muted-foreground">
-                        {ticket.message}
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/support-tickets/${ticket.id}`}>View Details</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Update Status</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}

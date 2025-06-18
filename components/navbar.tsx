@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ChevronDown, User, LogOut } from "lucide-react"
+import { Menu, X, ChevronDown, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { createSupabaseClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { LogoutButton } from "@/components/logout-button"
 
 const navItems = [
   {
@@ -52,9 +52,9 @@ export function Navbar() {
   const [activeSubmenu, setActiveSubmenu] = useState<number | null>(null)
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingUser, setIsLoadingUser] = useState(true)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
-  const router = useRouter()
   const supabase = createSupabaseClient()
 
   useEffect(() => {
@@ -65,9 +65,9 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Get user session and profile
   useEffect(() => {
     const getUser = async () => {
+      setIsLoadingUser(true)
       try {
         const {
           data: { session },
@@ -75,41 +75,67 @@ export function Navbar() {
         setUser(session?.user || null)
 
         if (session?.user) {
-          const { data: profile } = await supabase
+          const { data: profileData } = await supabase
             .from("users")
-            .select("first_name, last_name, profile_image")
+            .select("first_name, last_name, profile_image, roles ( name )")
             .eq("id", session.user.id)
             .single()
-          setUserProfile(profile)
+
+          if (profileData) {
+            setUserProfile(profileData)
+            // @ts-ignore
+            setUserRole(profileData.roles?.name || "user")
+          } else {
+            setUserRole("user")
+          }
+        } else {
+          setUserRole(null)
         }
       } catch (error) {
         console.error("Error fetching user:", error)
+        setUserRole(null)
       } finally {
-        setIsLoading(false)
+        setIsLoadingUser(false)
       }
     }
-
     getUser()
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user || null)
-      if (!session?.user) {
+      setIsLoadingUser(true)
+      if (session?.user) {
+        try {
+          const { data: profileData } = await supabase
+            .from("users")
+            .select("first_name, last_name, profile_image, roles ( name )")
+            .eq("id", session.user.id)
+            .single()
+          if (profileData) {
+            setUserProfile(profileData)
+            // @ts-ignore
+            setUserRole(profileData.roles?.name || "user")
+          } else {
+            setUserProfile(null)
+            setUserRole("user")
+          }
+        } catch (error) {
+          console.error("Error fetching user on auth change:", error)
+          setUserProfile(null)
+          setUserRole(null)
+        }
+      } else {
         setUserProfile(null)
+        setUserRole(null)
       }
+      setIsLoadingUser(false)
     })
-
-    return () => subscription.unsubscribe()
+    return () => authListener.subscription.unsubscribe()
   }, [supabase])
 
-  // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const mobileMenu = document.getElementById("mobile-menu")
       const menuButton = document.getElementById("mobile-menu-button")
-
       if (
         isMobileMenuOpen &&
         mobileMenu &&
@@ -121,7 +147,6 @@ export function Navbar() {
         setActiveSubmenu(null)
       }
     }
-
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [isMobileMenuOpen])
@@ -134,19 +159,7 @@ export function Navbar() {
   const toggleMobileMenu = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsMobileMenuOpen(!isMobileMenuOpen)
-    if (isMobileMenuOpen) {
-      setActiveSubmenu(null)
-    }
-  }
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut()
-      router.push("/auth")
-      router.refresh()
-    } catch (error) {
-      console.error("Error logging out:", error)
-    }
+    if (isMobileMenuOpen) setActiveSubmenu(null)
   }
 
   return (
@@ -164,7 +177,6 @@ export function Navbar() {
             WebFlow Pro
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item, index) => (
               <div key={item.href} className="relative group">
@@ -188,8 +200,6 @@ export function Navbar() {
                     {item.label}
                   </Link>
                 )}
-
-                {/* Submenu */}
                 {item.submenu && (
                   <AnimatePresence>
                     {activeSubmenu === index && (
@@ -216,9 +226,7 @@ export function Navbar() {
                 )}
               </div>
             ))}
-
-            {/* User Authentication */}
-            {!isLoading && (
+            {!isLoadingUser && (
               <>
                 {user ? (
                   <DropdownMenu>
@@ -243,7 +251,7 @@ export function Navbar() {
                       </div>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link href="/user/dashboard" className="cursor-pointer">
+                        <Link href={userRole === "admin" ? "/admin" : "/user/dashboard"} className="cursor-pointer">
                           <User className="mr-2 h-4 w-4" />
                           Dashboard
                         </Link>
@@ -255,14 +263,19 @@ export function Navbar() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Logout
+                      <DropdownMenuItem asChild className="text-red-600">
+                        <div>
+                          <LogoutButton
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start p-0 h-auto text-red-600"
+                          />
+                        </div>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Link href="/auth" className="ml-4">
+                  <Link href="/auth/login" className="ml-4">
                     <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all">
                       Get Started
                     </Button>
@@ -272,7 +285,6 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             id="mobile-menu-button"
             className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
@@ -282,7 +294,6 @@ export function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -307,7 +318,6 @@ export function Navbar() {
                             className={`w-4 h-4 transition-transform ${activeSubmenu === index ? "rotate-180" : ""}`}
                           />
                         </button>
-
                         <AnimatePresence>
                           {activeSubmenu === index && (
                             <motion.div
@@ -343,9 +353,7 @@ export function Navbar() {
                     )}
                   </div>
                 ))}
-
-                {/* Mobile User Menu */}
-                {!isLoading && (
+                {!isLoadingUser && (
                   <div className="border-t pt-3 mt-3">
                     {user ? (
                       <>
@@ -355,7 +363,7 @@ export function Navbar() {
                           <span className="text-xs">{user.email}</span>
                         </div>
                         <Link
-                          href="/user/dashboard"
+                          href={userRole === "admin" ? "/admin" : "/user/dashboard"}
                           className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
@@ -368,19 +376,13 @@ export function Navbar() {
                         >
                           Profile
                         </Link>
-                        <button
-                          onClick={() => {
-                            handleLogout()
-                            setIsMobileMenuOpen(false)
-                          }}
-                          className="block w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
-                        >
-                          Logout
-                        </button>
+                        <div className="px-3 py-2">
+                          <LogoutButton variant="ghost" className="w-full justify-start text-red-600 p-0" />
+                        </div>
                       </>
                     ) : (
                       <div className="px-3 py-3">
-                        <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
                           <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700">Get Started</Button>
                         </Link>
                       </div>

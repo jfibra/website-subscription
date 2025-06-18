@@ -17,21 +17,37 @@ export async function GET(request: NextRequest) {
       } = await supabase.auth.getSession()
 
       if (session?.user) {
-        // Get user role
-        const { data: profile } = await supabase.from("users").select("roles(name)").eq("id", session.user.id).single()
+        // Get user role with better error handling
+        const { data: profile, error: profileError } = await supabase
+          .from("users")
+          .select("roles(name)")
+          .eq("id", session.user.id)
+          .single()
 
-        // @ts-ignore
-        const userRole = profile?.roles?.name
+        if (!profileError && profile) {
+          // @ts-ignore
+          const userRole = profile?.roles?.name
 
-        if (userRole === "admin") {
-          return NextResponse.redirect(`${origin}/admin/dashboard`)
+          console.log("Auth callback - User role:", userRole) // Debug log
+
+          if (userRole === "admin") {
+            console.log("Redirecting admin to /admin") // Debug log
+            return NextResponse.redirect(`${origin}/admin`)
+          } else {
+            console.log("Redirecting user to /user/dashboard") // Debug log
+            return NextResponse.redirect(`${origin}/user/dashboard`)
+          }
         } else {
+          console.error("Profile fetch error:", profileError)
+          // Default to user dashboard if role fetch fails
           return NextResponse.redirect(`${origin}/user/dashboard`)
         }
       }
+    } else {
+      console.error("Auth exchange error:", error)
     }
   }
 
   // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  return NextResponse.redirect(`${origin}/auth/login?error=auth_callback_failed`)
 }

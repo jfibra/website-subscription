@@ -1,9 +1,11 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Globe, LinkIcon } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { MoreHorizontal, Globe } from "lucide-react"
+import Link from "next/link"
 import type { Database } from "@/types/supabase"
 
 type Website = Database["public"]["Tables"]["websites"]["Row"] & {
@@ -13,42 +15,18 @@ type Website = Database["public"]["Tables"]["websites"]["Row"] & {
 
 export default async function AdminWebsitesPage() {
   const supabase = createSupabaseServerClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    redirect("/auth/login")
-  }
-
-  // Ensure only admins can access this page
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("roles(name)")
-    .eq("id", session.user.id)
-    .single()
-
-  // @ts-ignore
-  if (profileError || profile?.roles?.name !== "admin") {
-    redirect("/user/dashboard?error=unauthorized")
-  }
 
   const { data: websites, error: websitesError } = await supabase
     .from("websites")
     .select(`
-      id,
-      title,
-      description,
-      live_url,
-      status,
-      created_at,
+      *,
       users(first_name, last_name),
       plans(name)
     `)
     .eq("is_deleted", false)
     .order("created_at", { ascending: false })
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     switch (status) {
       case "live":
         return "bg-green-100 text-green-800"
@@ -58,21 +36,20 @@ export default async function AdminWebsitesPage() {
         return "bg-yellow-100 text-yellow-800"
       case "paused":
         return "bg-orange-100 text-orange-800"
-      case "deleted":
-        return "bg-red-100 text-red-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold mb-8 font-plus-jakarta">All Websites</h1>
-
+    <div className="flex flex-col gap-8">
+      <h1 className="text-3xl font-bold font-plus-jakarta">Website Management</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="w-5 h-5" /> Website List
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5" /> All Websites
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -88,8 +65,10 @@ export default async function AdminWebsitesPage() {
                     <TableHead>Owner</TableHead>
                     <TableHead>Plan</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Live URL</TableHead>
                     <TableHead>Created At</TableHead>
+                    <TableHead>
+                      <span className="sr-only">Actions</span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -101,25 +80,32 @@ export default async function AdminWebsitesPage() {
                       </TableCell>
                       <TableCell>{site.plans?.name || "N/A"}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(site.status)}>
-                          {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {site.live_url ? (
-                          <a
-                            href={site.live_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline flex items-center"
-                          >
-                            <LinkIcon className="w-4 h-4 mr-1" /> View
-                          </a>
-                        ) : (
-                          "N/A"
-                        )}
+                        <Badge className={getStatusColor(site.status)}>{site.status}</Badge>
                       </TableCell>
                       <TableCell>{new Date(site.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/websites/${site.id}`}>View Details</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Update Status</DropdownMenuItem>
+                            {site.live_url && (
+                              <DropdownMenuItem asChild>
+                                <a href={site.live_url} target="_blank" rel="noopener noreferrer">
+                                  View Live Site
+                                </a>
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

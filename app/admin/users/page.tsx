@@ -1,60 +1,67 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Users } from "lucide-react"
-import type { Database } from "@/types/supabase"
+import { Badge } from "@/components/ui/badge"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { MoreHorizontal, Users } from "lucide-react"
+import Link from "next/link"
 
-type UserProfile = Database["public"]["Tables"]["users"]["Row"] & {
-  roles: { name: string } | null
-  auth_users: { email: string } | null
+type UserProfile = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+  role: string | null
+  status: string | null
+  created_at: string
 }
 
 export default async function AdminUsersPage() {
   const supabase = createSupabaseServerClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
 
-  if (!session) {
-    redirect("/auth/login")
-  }
-
-  // Ensure only admins can access this page (middleware should handle this, but double-check)
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("roles(name)")
-    .eq("id", session.user.id)
-    .single()
-
-  // @ts-ignore
-  if (profileError || profile?.roles?.name !== "admin") {
-    redirect("/user/dashboard?error=unauthorized")
-  }
-
-  const { data: users, error: usersError } = await supabase
+  const { data: usersData, error: usersError } = await supabase
     .from("users")
     .select(`
       id,
       first_name,
       last_name,
-      phone_number,
-      company_name,
+      status,
       created_at,
-      roles(name),
-      auth_users:auth.users(email)
+      roles ( name ),
+      user_profile:auth.users ( email )
     `)
     .eq("is_deleted", false)
     .order("created_at", { ascending: false })
 
+  const users: UserProfile[] =
+    usersData?.map((u) => ({
+      id: u.id,
+      first_name: u.first_name,
+      last_name: u.last_name,
+      status: u.status,
+      created_at: u.created_at,
+      // @ts-ignore
+      email: u.user_profile?.email || "N/A",
+      // @ts-ignore
+      role: u.roles?.name || "N/A",
+    })) || []
+
+  const getStatusColor = (status: string | null) => {
+    return status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+  }
+
   return (
-    <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold mb-8 font-plus-jakarta">All Users</h1>
+    <div className="flex flex-col gap-8">
+      <h1 className="text-3xl font-bold font-plus-jakarta">User Management</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" /> User List
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5" /> All Users
+            </div>
+            {/* Add search/filter components here later */}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -69,22 +76,44 @@ export default async function AdminUsersPage() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Company</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
+                    <TableHead>
+                      <span className="sr-only">Actions</span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((user: UserProfile) => (
+                  {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
                         {user.first_name} {user.last_name}
                       </TableCell>
-                      <TableCell>{user.auth_users?.email || "N/A"}</TableCell>
-                      <TableCell>{user.roles?.name || "N/A"}</TableCell>
-                      <TableCell>{user.phone_number || "N/A"}</TableCell>
-                      <TableCell>{user.company_name || "N/A"}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{user.role}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
+                      </TableCell>
                       <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/users/${user.id}`}>View Details</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Edit User</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">Delete User</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
