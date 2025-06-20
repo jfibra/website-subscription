@@ -3,251 +3,217 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Play } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { ArrowRight, CheckCircle, Zap, Rocket } from "lucide-react"
 import Image from "next/image"
 
 export function HeroSection() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const heroRef = useRef<HTMLDivElement>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  useEffect(() => {
-    setIsLoaded(true)
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!heroRef.current) return
-
-      const rect = heroRef.current.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-
-      setMousePosition({ x, y })
-    }
-
-    const heroElement = heroRef.current
-    if (heroElement) {
-      heroElement.addEventListener("mousemove", handleMouseMove)
-    }
-
-    return () => {
-      if (heroElement) {
-        heroElement.removeEventListener("mousemove", handleMouseMove)
-      }
-    }
-  }, [])
-
-  const calculateTransform = (offsetX: number, offsetY: number, factor: number) => {
-    if (!heroRef.current) return { x: 0, y: 0 }
-
-    const { width, height } = heroRef.current.getBoundingClientRect()
-    const centerX = width / 2
-    const centerY = height / 2
-
-    const x = ((mousePosition.x - centerX) / centerX) * offsetX
-    const y = ((mousePosition.y - centerY) / centerY) * offsetY
-
-    return { x: x * factor, y: y * factor }
-  }
-
   return (
-    <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute top-0 left-0 w-full h-full opacity-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.1 }}
-          transition={{ duration: 1.5 }}
-        >
-          <div className="absolute top-0 left-0 w-full h-full dot-pattern opacity-30"></div>
-          <div className="absolute top-0 left-0 w-full h-full noise-bg"></div>
-        </motion.div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Improved background with better contrast */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-green-50/50 to-orange-50/30"></div>
 
-        {/* Floating Shapes */}
-        <motion.div
-          className="absolute top-[20%] left-[15%] w-64 h-64 rounded-full bg-blue-500/10 blur-3xl"
-          animate={{
-            x: [0, 30, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Number.POSITIVE_INFINITY,
-            repeatType: "reverse",
-          }}
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div
+          className="absolute inset-0"
           style={{
-            transform: `translate3d(${calculateTransform(20, 20, 0.5).x}px, ${calculateTransform(20, 20, 0.5).y}px, 0)`,
+            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(34, 197, 94, 0.3) 1px, transparent 0)`,
+            backgroundSize: "40px 40px",
           }}
-        />
-
-        <motion.div
-          className="absolute bottom-[20%] right-[15%] w-72 h-72 rounded-full bg-purple-500/10 blur-3xl"
-          animate={{
-            x: [0, -40, 0],
-            y: [0, 40, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Number.POSITIVE_INFINITY,
-            repeatType: "reverse",
-          }}
-          style={{
-            transform: `translate3d(${calculateTransform(-20, -20, 0.3).x}px, ${calculateTransform(-20, -20, 0.3).y}px, 0)`,
-          }}
-        />
+        ></div>
       </div>
 
-      {/* Video Background with Overlay */}
-      <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="video-background opacity-20"
-          poster="/abstract-geometric-poster.png"
-          onLoadedData={() => setIsLoaded(true)}
-        >
-          <source src="/placeholder.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/90 via-white/95 to-purple-50/90" />
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isLoaded ? 1 : 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="max-w-4xl mx-auto"
-        >
-          {/* Floating Badge */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-screen py-20">
+          {/* Left Content */}
           <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="inline-block mb-6"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-left"
           >
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-700 border border-blue-200 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
-              Professional Web Design & Management
-            </span>
-          </motion.div>
-
-          <motion.h1
-            className="font-plus-jakarta font-extrabold text-5xl md:text-7xl lg:text-8xl mb-6 leading-tight tracking-tighter text-shadow text-balance"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            Websites Built for <span className="gradient-text">Growth</span>, Managed with Care
-          </motion.h1>
-
-          <motion.p
-            className="text-xl md:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            Start your online presence with a modern Next.js site. No upfront fees, no complicated contracts. We design,
-            build, and manage your website so you can focus on your business.
-          </motion.p>
-
-          <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
-            <Button
-              size="lg"
-              className="text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl"
-              asChild
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-800 text-sm font-medium mb-6 border border-green-200"
             >
-              <Link href="/auth">
-                Get Started <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6 border-2 hover-lift rounded-xl" asChild>
-              <Link href="#pricing">
-                <Play className="mr-2 w-5 h-5" /> See Plans
-              </Link>
-            </Button>
+              <Zap className="w-4 h-4 mr-2" />
+              Professional Web Solutions
+            </motion.div>
+
+            {/* Main Heading - Improved contrast */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight mb-6"
+            >
+              Websites That{" "}
+              <span className="bg-gradient-to-r from-green-700 to-orange-600 bg-clip-text text-transparent font-extrabold">
+                Adapt & Grow
+              </span>
+            </motion.h1>
+
+            {/* Subtitle - Better contrast */}
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="text-lg sm:text-xl text-gray-700 mb-8 leading-relaxed max-w-2xl font-medium"
+            >
+              Professional Next.js websites designed to evolve with your business. No upfront costs, no long-term
+              contracts. Just results that scale naturally.
+            </motion.p>
+
+            {/* Feature List - Improved visibility */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="grid sm:grid-cols-2 gap-3 mb-8"
+            >
+              {["24-hour first preview", "Built on Next.js", "Mobile-first design", "Cancel anytime"].map(
+                (feature, index) => (
+                  <div key={index} className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-green-600 mr-3 flex-shrink-0" />
+                    <span className="text-gray-800 font-medium">{feature}</span>
+                  </div>
+                ),
+              )}
+            </motion.div>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="flex flex-col sm:flex-row gap-4"
+            >
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                asChild
+              >
+                <Link href="/auth">
+                  Get Started Free
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Link>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-2 border-gray-400 hover:border-green-500 hover:bg-green-50 text-gray-800 hover:text-green-800 px-8 py-6 text-lg rounded-xl transition-all duration-300 font-semibold"
+                asChild
+              >
+                <Link href="#pricing">View Pricing</Link>
+              </Button>
+            </motion.div>
+
+            {/* Trust Indicators */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
+              className="mt-12 pt-8 border-t border-gray-300"
+            >
+              <p className="text-sm text-gray-600 mb-4 font-medium">Trusted by businesses worldwide</p>
+              <div className="flex items-center space-x-8 opacity-70">
+                <Image
+                  src="/nextjs-logo.png"
+                  alt="Next.js"
+                  width={60}
+                  height={30}
+                  className="h-6 w-auto object-contain"
+                />
+                <Image
+                  src="/vercel-logo.png"
+                  alt="Vercel"
+                  width={60}
+                  height={30}
+                  className="h-6 w-auto object-contain"
+                />
+                <Image
+                  src="/tailwind-logo.png"
+                  alt="Tailwind"
+                  width={60}
+                  height={30}
+                  className="h-6 w-auto object-contain"
+                />
+              </div>
+            </motion.div>
           </motion.div>
 
+          {/* Right Content - Hero Image */}
           <motion.div
-            className="mt-12 text-sm text-gray-500 flex flex-wrap justify-center gap-x-6 gap-y-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 1 }}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+            className="relative lg:h-[600px] flex items-center justify-center"
           >
-            <div className="flex items-center">
-              <span className="inline-block w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 mr-2 flex items-center justify-center text-white text-xs">
-                ✓
-              </span>
-              First preview in 24 hours
-            </div>
-            <div className="flex items-center">
-              <span className="inline-block w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 mr-2 flex items-center justify-center text-white text-xs">
-                ✓
-              </span>
-              Built on Next.js
-            </div>
-            <div className="flex items-center">
-              <span className="inline-block w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 mr-2 flex items-center justify-center text-white text-xs">
-                ✓
-              </span>
-              Cancel anytime
+            {/* Main Hero Image */}
+            <div className="relative w-full max-w-lg mx-auto">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-orange-400/20 rounded-3xl blur-3xl transform rotate-6"></div>
+              <div className="relative bg-white rounded-3xl shadow-2xl p-8 border border-gray-200">
+                <Image
+                  src="/iguana-hero.png"
+                  alt="Professional Website Design"
+                  width={400}
+                  height={300}
+                  className="w-full h-auto rounded-2xl"
+                  priority
+                />
+
+                {/* Floating Stats Cards */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1, duration: 0.6 }}
+                  className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-4 border border-gray-200"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-semibold text-gray-800">Live & Growing</span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2, duration: 0.6 }}
+                  className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-4 border border-gray-200"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Rocket className="w-4 h-4 text-orange-500" />
+                    <span className="text-sm font-semibold text-gray-800">Fast Deploy</span>
+                  </div>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Scroll Indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.8 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:block"
       >
-        <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center">
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+          className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center cursor-pointer hover:border-green-500 transition-colors"
+        >
           <motion.div
-            className="w-1 h-3 bg-gray-400 rounded-full mt-2"
-            animate={{ y: [0, 4, 0] }}
-            transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
+            animate={{ y: [0, 12, 0] }}
+            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+            className="w-1 h-3 bg-gray-500 rounded-full mt-2"
           />
-        </div>
-      </motion.div>
-
-      {/* Featured Clients/Technologies */}
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 py-6 bg-gradient-to-t from-white/80 to-transparent backdrop-blur-sm"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.2 }}
-      >
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
-            <Image src="/nextjs-logo.png" alt="Next.js" width={80} height={40} className="h-8 w-auto object-contain" />
-            <Image
-              src="/tailwind-logo.png"
-              alt="Tailwind CSS"
-              width={80}
-              height={40}
-              className="h-8 w-auto object-contain"
-            />
-            <Image src="/vercel-logo.png" alt="Vercel" width={80} height={40} className="h-8 w-auto object-contain" />
-            <Image
-              src="/framer-motion-logo.png"
-              alt="Framer Motion"
-              width={80}
-              height={40}
-              className="h-8 w-auto object-contain"
-            />
-            <Image src="/stripe-logo.png" alt="Stripe" width={80} height={40} className="h-8 w-auto object-contain" />
-          </div>
-        </div>
+        </motion.div>
       </motion.div>
     </section>
   )

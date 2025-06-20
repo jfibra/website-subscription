@@ -1,222 +1,171 @@
 "use client"
 
-import { motion, useScroll, useTransform } from "framer-motion"
-import { Check, Star, ChevronDown } from "lucide-react"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Check, Star } from "lucide-react"
 import Link from "next/link"
-import { useState, useRef } from "react"
 
 const plans = [
   {
-    name: "One-Pager",
-    description: "Perfect for events and freelancers",
-    monthlyFee: 39,
-    setupFee: 49,
-    edits: 3,
+    name: "Starter",
+    price: "$99",
+    period: "/month",
+    description: "Perfect for small businesses and personal brands",
     features: [
-      "Single landing page",
-      "Mobile responsive",
-      "Basic SEO",
-      "SSL & hosting included",
-      "3 monthly edits",
-      "24hr preview delivery",
+      "Custom Next.js website",
+      "Mobile-responsive design",
+      "Basic SEO optimization",
+      "SSL certificate included",
+      "3 pages included",
+      "Contact form integration",
+      "Monthly updates (3 requests)",
+      "Email support",
     ],
     popular: false,
+    cta: "Get Started",
+    color: "border-gray-200",
   },
   {
-    name: "Informational",
-    description: "Ideal for small businesses",
-    monthlyFee: 59,
-    setupFee: 99,
-    edits: 3,
+    name: "Professional",
+    price: "$199",
+    period: "/month",
+    description: "Ideal for growing businesses with advanced needs",
     features: [
-      "3-5 pages",
-      "Contact forms",
-      "Google Maps integration",
-      "Social media links",
-      "Basic analytics",
-      "Monthly content updates",
+      "Everything in Starter",
+      "Up to 10 pages",
+      "Advanced SEO optimization",
+      "Google Analytics setup",
+      "Social media integration",
+      "Blog/CMS integration",
+      "Weekly updates (6 requests)",
+      "Priority email support",
+      "Performance monitoring",
     ],
     popular: true,
+    cta: "Most Popular",
+    color: "border-green-500 ring-2 ring-green-500 ring-opacity-50",
   },
   {
-    name: "Multi-Page",
-    description: "For growing companies",
-    monthlyFee: 89,
-    setupFee: 129,
-    edits: 5,
+    name: "Enterprise",
+    price: "$399",
+    period: "/month",
+    description: "For established businesses requiring premium features",
     features: [
-      "6-10 pages",
-      "Advanced SEO",
-      "Blog functionality",
-      "Newsletter signup",
-      "Advanced analytics",
-      "Priority support",
-    ],
-    popular: false,
-  },
-  {
-    name: "E-commerce",
-    description: "Complete online stores",
-    monthlyFee: 129,
-    setupFee: 199,
-    edits: 5,
-    features: [
-      "Product catalog",
-      "Shopping cart",
-      "Payment processing",
-      "Inventory management",
-      "Order tracking",
-      "Customer accounts",
-    ],
-    popular: false,
-  },
-  {
-    name: "Custom",
-    description: "Dashboards, booking systems & more",
-    monthlyFee: 159,
-    setupFee: "Quote",
-    edits: "Unlimited",
-    features: [
+      "Everything in Professional",
+      "Unlimited pages",
+      "E-commerce integration",
       "Custom functionality",
-      "Database integration",
-      "User authentication",
       "API integrations",
-      "Advanced features",
-      "Dedicated support",
+      "Advanced analytics",
+      "Unlimited updates",
+      "24/7 phone support",
+      "Dedicated account manager",
+      "Custom domain management",
     ],
     popular: false,
+    cta: "Contact Sales",
+    color: "border-gray-200",
   },
 ]
 
 export function PricingSection() {
-  const [hoveredPlan, setHoveredPlan] = useState<number | null>(null)
-  const sectionRef = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  })
-
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.6, 1, 1, 0.6])
-  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.95, 1, 1, 0.95])
-
   return (
-    <section id="pricing" ref={sectionRef} className="py-24 bg-white relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 noise-bg z-0"></div>
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-gray-50 to-transparent z-0"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 to-transparent z-0"></div>
-
-      <motion.div style={{ opacity, scale }} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <section id="pricing" className="py-16 sm:py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
           viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <span className="inline-block px-4 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 mb-4">
-            Flexible Plans
-          </span>
-          <h2 className="font-plus-jakarta font-extrabold text-4xl md:text-6xl mb-6">
-            Simple <span className="gradient-text">Pricing</span>
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Choose the perfect plan for your business. All plans include hosting, SSL, and ongoing support.
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+            Choose the plan that fits your business. All plans include hosting, SSL, and ongoing maintenance.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
           {plans.map((plan, index) => (
             <motion.div
-              key={plan.name}
+              key={index}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="relative"
-              onMouseEnter={() => setHoveredPlan(index)}
-              onMouseLeave={() => setHoveredPlan(null)}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              className={`relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 ${plan.color} ${
+                plan.popular ? "transform lg:scale-105" : ""
+              }`}
             >
+              {/* Popular Badge */}
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center shadow-md">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center">
                     <Star className="w-4 h-4 mr-1" />
                     Most Popular
                   </div>
                 </div>
               )}
 
-              <Card
-                className={`h-full rounded-xl transition-all duration-500 ${
-                  hoveredPlan === index ? "shadow-2xl transform -translate-y-2" : "shadow-md hover:shadow-xl"
-                } ${plan.popular ? "gradient-border shadow-xl" : ""}`}
-              >
-                <CardHeader className="text-center pb-4">
-                  <CardTitle className="font-plus-jakarta text-2xl mb-2">{plan.name}</CardTitle>
-                  <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
-                  <div className="space-y-1">
-                    <div className="text-4xl font-bold">
-                      ${plan.monthlyFee}
-                      <span className="text-lg font-normal text-gray-600">/mo</span>
-                    </div>
-                    <div className="text-sm text-gray-500">Setup: ${plan.setupFee}</div>
-                    <div className="text-sm text-blue-600 font-medium">{plan.edits} monthly edits</div>
+              <div className="p-6 sm:p-8">
+                {/* Plan Header */}
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                  <p className="text-gray-600 mb-4">{plan.description}</p>
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-4xl sm:text-5xl font-bold text-gray-900">{plan.price}</span>
+                    <span className="text-xl text-gray-500 ml-1">{plan.period}</span>
                   </div>
-                </CardHeader>
+                </div>
 
-                <CardContent className="pt-0">
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, featureIndex) => (
-                      <motion.li
-                        key={featureIndex}
-                        className="flex items-start"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{
-                          opacity: hoveredPlan === index || hoveredPlan === null ? 1 : 0.7,
-                          x: 0,
-                        }}
-                        transition={{ duration: 0.3, delay: featureIndex * 0.05 }}
-                      >
-                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-2 mt-0.5">
-                          <Check className="w-3 h-3 text-green-600" />
-                        </div>
-                        <span className="text-sm text-gray-600">{feature}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
+                {/* Features List */}
+                <ul className="space-y-4 mb-8">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-start">
+                      <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
 
-                  <Button
-                    className={`w-full ${
-                      plan.popular
-                        ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                        : "bg-white text-blue-600 border-2 border-blue-200 hover:bg-blue-50"
-                    }`}
-                    asChild
-                  >
-                    <Link href="/auth">Get Started</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+                {/* CTA Button */}
+                <Button
+                  className={`w-full py-6 text-lg font-semibold rounded-xl transition-all duration-300 ${
+                    plan.popular
+                      ? "bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300"
+                  }`}
+                  asChild
+                >
+                  <Link href="/auth">{plan.cta}</Link>
+                </Button>
+              </div>
             </motion.div>
           ))}
         </div>
 
-        {/* FAQ Teaser */}
+        {/* Bottom Note */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
           viewport={{ once: true }}
-          className="mt-16 text-center"
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="text-center mt-16"
         >
-          <Link href="/services#faq" className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
-            Have questions about our plans?
-            <ChevronDown className="ml-1 w-4 h-4" />
-          </Link>
+          <p className="text-gray-600 mb-4">
+            All plans include a 30-day money-back guarantee. No setup fees, cancel anytime.
+          </p>
+          <p className="text-sm text-gray-500">
+            Need a custom solution?{" "}
+            <Link href="/contact" className="text-green-600 hover:text-green-700 font-medium">
+              Contact us
+            </Link>{" "}
+            for enterprise pricing.
+          </p>
         </motion.div>
-      </motion.div>
+      </div>
     </section>
   )
 }

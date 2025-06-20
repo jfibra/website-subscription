@@ -14,9 +14,15 @@ const plusJakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "WebFlow Pro - Monthly Website Subscriptions",
+  title: "Site Iguana - Professional Website Subscriptions",
   description:
-    "Professional websites built for you. Pay monthly, no upfront costs. Modern Next.js sites with ongoing support.",
+    "Professional websites built for you by Site Iguana. Pay monthly, no upfront costs. Modern Next.js sites with ongoing support and iguana-powered excellence.",
+  keywords: "website design, monthly subscription, professional websites, Site Iguana, web development",
+  openGraph: {
+    title: "Site Iguana - Professional Website Subscriptions",
+    description: "Professional websites built for you by Site Iguana. Pay monthly, no upfront costs.",
+    images: ["/site-iguana-logo.png"],
+  },
     generator: 'v0.dev'
 }
 
@@ -28,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <head>
+        <link rel="icon" href="/iguana-favicon.png" />
         <Script
           src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
           strategy="lazyOnload"

@@ -3,122 +3,113 @@
 import type React from "react"
 
 import { useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createSupabaseClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import Link from "next/link"
-import { Loader2 } from "lucide-react"
+import { createSupabaseClient } from "@/lib/supabase/client"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createSupabaseClient()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
+    setIsLoading(true)
     setError(null)
 
-    try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
-      if (signInError) {
-        setError(signInError.message)
-        return
-      }
-
-      if (data.user) {
-        // Get user role to determine redirect
-        const { data: profile } = await supabase.from("users").select("roles(name)").eq("id", data.user.id).single()
-
-        // @ts-ignore
-        const userRole = profile?.roles?.name
-
-        if (userRole === "admin") {
-          router.push("/admin/dashboard")
-        } else {
-          router.push("/user/dashboard")
-        }
-      }
-    } catch (err: any) {
-      setError("An unexpected error occurred. Please try again.")
-    } finally {
-      setLoading(false)
+    if (signInError) {
+      setError(signInError.message)
+      setIsLoading(false)
+      return
     }
+
+    router.push("/user/dashboard")
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign in</CardTitle>
-          <CardDescription className="text-center">
-            Enter your email and password to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-orange-100 px-4">
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-sm border border-green-100 shadow-xl rounded-xl p-8">
+        <div className="flex justify-center mb-8">
+          <Image
+            src="/site-iguana-logo-new.png"
+            alt="Site Iguana logo"
+            width={180}
+            height={70}
+            priority
+            className="h-auto w-auto"
+          />
+        </div>
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+        <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">Sign in to your account</h1>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign in
-            </Button>
-          </form>
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTitle className="font-semibold">Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-          <div className="mt-6 text-center text-sm">
-            <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">
-              Forgot your password?
-            </Link>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email address</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+            />
           </div>
 
-          <div className="mt-4 text-center text-sm">
-            Don't have an account?{" "}
-            <Link href="/auth/register" className="text-blue-600 hover:underline">
-              Sign up
-            </Link>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              required
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+
+          <Button type="submit" className="w-full iguana-button text-white" disabled={isLoading}>
+            {isLoading ? "Signing&nbsp;in…" : "Sign&nbsp;in"}
+          </Button>
+        </form>
+
+        <p className="text-center text-sm text-gray-600 mt-6">
+          Don&apos;t have an account?{" "}
+          <Link href="/auth/register" className="text-green-600 hover:underline font-medium">
+            Sign&nbsp;up
+          </Link>
+        </p>
+
+        <p className="text-center text-xs text-gray-500 mt-4">
+          <Link href="/privacy" className="hover:underline">
+            Privacy&nbsp;Policy
+          </Link>{" "}
+          ·{" "}
+          <Link href="/terms" className="hover:underline">
+            Terms&nbsp;of&nbsp;Service
+          </Link>
+        </p>
+      </div>
+    </main>
   )
 }

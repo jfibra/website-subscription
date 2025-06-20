@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { createSupabaseClient } from "@/lib/supabase/client"
 import { LogoutButton } from "@/components/logout-button"
+// import { IguanaIcon } from "@/components/iguana/iguana-icons"
 
 const navItems = [
   {
@@ -165,7 +166,9 @@ export function Navbar() {
   return (
     <motion.nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100" : "bg-transparent"
+        isScrolled
+          ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-green-100"
+          : "bg-gradient-to-r from-green-50/80 to-orange-50/80 backdrop-blur-sm"
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -173,8 +176,10 @@ export function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <Link href="/" className="font-plus-jakarta font-extrabold text-2xl md:text-3xl gradient-text">
-            WebFlow Pro
+          <Link href="/" className="flex items-center space-x-3">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <img src="/site-iguana-logo-new.png" alt="Site Iguana Logo" className="h-12 w-auto" />
+            </motion.div>
           </Link>
 
           <div className="hidden md:flex items-center space-x-1">
@@ -182,7 +187,7 @@ export function Navbar() {
               <div key={item.href} className="relative group">
                 {item.submenu ? (
                   <button
-                    className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium rounded-md group-hover:bg-gray-50 flex items-center"
+                    className="px-4 py-2 text-gray-700 hover:text-green-600 transition-colors font-medium rounded-md group-hover:bg-green-50 flex items-center"
                     onClick={(e) => toggleSubmenu(index, e)}
                   >
                     {item.label}
@@ -193,8 +198,8 @@ export function Navbar() {
                 ) : (
                   <Link
                     href={item.href}
-                    className={`px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium rounded-md hover:bg-gray-50 ${
-                      item.featured ? "text-blue-600" : ""
+                    className={`px-4 py-2 text-gray-700 hover:text-green-600 transition-colors font-medium rounded-md hover:bg-green-50 ${
+                      item.featured ? "text-green-600" : ""
                     }`}
                   >
                     {item.label}
@@ -208,13 +213,13 @@ export function Navbar() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50"
+                        className="absolute left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-green-100 py-2 z-50"
                       >
                         {item.submenu.map((subitem) => (
                           <Link
                             key={subitem.href}
                             href={subitem.href}
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600"
                             onClick={() => setActiveSubmenu(null)}
                           >
                             {subitem.label}
@@ -234,7 +239,7 @@ export function Navbar() {
                       <Button variant="ghost" className="relative h-10 w-10 rounded-full ml-4">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={userProfile?.profile_image || ""} />
-                          <AvatarFallback className="bg-blue-100 text-blue-600">
+                          <AvatarFallback className="bg-green-100 text-green-600">
                             {userProfile?.first_name?.[0] || user.email?.[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
@@ -276,7 +281,7 @@ export function Navbar() {
                   </DropdownMenu>
                 ) : (
                   <Link href="/auth/login" className="ml-4">
-                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all">
+                    <Button className="iguana-button text-white shadow-md hover:shadow-lg transition-all">
                       Get Started
                     </Button>
                   </Link>
@@ -287,7 +292,7 @@ export function Navbar() {
 
           <button
             id="mobile-menu-button"
-            className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-md hover:bg-green-100 transition-colors"
             onClick={toggleMobileMenu}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -298,7 +303,7 @@ export function Navbar() {
           {isMobileMenuOpen && (
             <motion.div
               id="mobile-menu"
-              className="md:hidden bg-white border-t"
+              className="md:hidden bg-white border-t border-green-100"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -310,7 +315,7 @@ export function Navbar() {
                     {item.submenu ? (
                       <>
                         <button
-                          className="w-full text-left px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md flex justify-between items-center"
+                          className="w-full text-left px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md flex justify-between items-center"
                           onClick={(e) => toggleSubmenu(index, e)}
                         >
                           {item.label}
@@ -330,7 +335,7 @@ export function Navbar() {
                                 <Link
                                   key={subitem.href}
                                   href={subitem.href}
-                                  className="block px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                                  className="block px-3 py-2 text-sm text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                   {subitem.label}
@@ -343,8 +348,8 @@ export function Navbar() {
                     ) : (
                       <Link
                         href={item.href}
-                        className={`block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md ${
-                          item.featured ? "text-blue-600 font-medium" : ""
+                        className={`block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md ${
+                          item.featured ? "text-green-600 font-medium" : ""
                         }`}
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
@@ -354,7 +359,7 @@ export function Navbar() {
                   </div>
                 ))}
                 {!isLoadingUser && (
-                  <div className="border-t pt-3 mt-3">
+                  <div className="border-t border-green-100 pt-3 mt-3">
                     {user ? (
                       <>
                         <div className="px-3 py-2 text-sm text-gray-600">
@@ -364,14 +369,14 @@ export function Navbar() {
                         </div>
                         <Link
                           href={userRole === "admin" ? "/admin" : "/user/dashboard"}
-                          className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          className="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           Dashboard
                         </Link>
                         <Link
                           href="/user/profile"
-                          className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          className="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           Profile
@@ -383,7 +388,7 @@ export function Navbar() {
                     ) : (
                       <div className="px-3 py-3">
                         <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
-                          <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700">Get Started</Button>
+                          <Button className="w-full iguana-button text-white">Get Started</Button>
                         </Link>
                       </div>
                     )}

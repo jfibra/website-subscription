@@ -56,22 +56,42 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom colors for gradients and accents
-        blue: {
-          50: "hsl(210 40% 96.1%)",
-          100: "hsl(210 40% 92.1%)",
-          500: "hsl(217.2 91.2% 59.8%)",
-          600: "hsl(217.2 91.2% 50%)",
-          700: "hsl(217.2 91.2% 40%)",
-          800: "hsl(217.2 91.2% 30%)",
+        // Iguana-themed colors
+        iguana: {
+          50: "hsl(120 40% 96.1%)",
+          100: "hsl(120 40% 92.1%)",
+          200: "hsl(120 35% 85%)",
+          300: "hsl(120 30% 75%)",
+          400: "hsl(120 25% 65%)",
+          500: "hsl(120 35% 45%)", // Main iguana green
+          600: "hsl(120 40% 35%)",
+          700: "hsl(120 45% 25%)",
+          800: "hsl(120 50% 15%)",
+          900: "hsl(120 55% 10%)",
         },
-        purple: {
-          50: "hsl(270 40% 96.1%)",
-          100: "hsl(270 40% 92.1%)",
-          500: "hsl(270 91.2% 59.8%)",
-          600: "hsl(270 91.2% 50%)",
-          700: "hsl(270 91.2% 40%)",
-          800: "hsl(270 91.2% 30%)",
+        orange: {
+          50: "hsl(25 100% 96%)",
+          100: "hsl(25 100% 92%)",
+          200: "hsl(25 100% 85%)",
+          300: "hsl(25 100% 75%)",
+          400: "hsl(25 100% 65%)",
+          500: "hsl(25 95% 55%)", // Iguana orange accent
+          600: "hsl(25 90% 45%)",
+          700: "hsl(25 85% 35%)",
+          800: "hsl(25 80% 25%)",
+          900: "hsl(25 75% 15%)",
+        },
+        earth: {
+          50: "hsl(35 30% 96%)",
+          100: "hsl(35 25% 90%)",
+          200: "hsl(35 20% 80%)",
+          300: "hsl(35 15% 70%)",
+          400: "hsl(35 12% 60%)",
+          500: "hsl(35 10% 50%)", // Earth tones
+          600: "hsl(35 12% 40%)",
+          700: "hsl(35 15% 30%)",
+          800: "hsl(35 18% 20%)",
+          900: "hsl(35 20% 10%)",
         },
       },
       borderRadius: {
@@ -88,10 +108,19 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "iguana-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "1" },
+          "50%": { transform: "scale(1.05)", opacity: "0.8" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "iguana-pulse": "iguana-pulse 2s ease-in-out infinite",
+      },
+      backgroundImage: {
+        "iguana-gradient": "linear-gradient(135deg, hsl(120 35% 45%) 0%, hsl(25 95% 55%) 100%)",
+        "iguana-pattern": "url('/iguana-pattern-bg.png')",
       },
     },
   },
