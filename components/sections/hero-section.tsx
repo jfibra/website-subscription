@@ -1,197 +1,143 @@
 "use client"
 
-import { motion } from "framer-motion"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, CheckCircle, Zap, Rocket } from "lucide-react"
-import Image from "next/image"
+import { ArrowRight, Play } from "lucide-react"
+import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 export function HeroSection() {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Improved background with better contrast */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-green-50/50 to-orange-50/30"></div>
+  const router = useRouter()
 
-      {/* Subtle Background Pattern */}
+  const handleGetStarted = () => {
+    router.push("/user/websites/wizard/start")
+  }
+
+  const handleWatchDemo = () => {
+    // Add demo video functionality here
+    console.log("Watch demo clicked")
+  }
+
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 via-white to-orange-50">
+      {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(34, 197, 94, 0.3) 1px, transparent 0)`,
-            backgroundSize: "40px 40px",
-          }}
-        ></div>
+        <img src="/iguana-pattern-bg.png" alt="" className="w-full h-full object-cover" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-screen py-20">
-          {/* Left Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left Column - Content */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-left"
+            transition={{ duration: 0.8 }}
+            className="text-center lg:text-left"
           >
-            {/* Badge */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6"
+            >
+              Build Your{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-orange-500">
+                Dream Website
+              </span>{" "}
+              in Days, Not Months
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed"
+            >
+              Professional websites for small businesses, entrepreneurs, and creatives. No coding required, no monthly
+              fees, just results.
+            </motion.p>
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-800 text-sm font-medium mb-6 border border-green-200"
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              Professional Web Solutions
-            </motion.div>
-
-            {/* Main Heading - Improved contrast */}
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight mb-6"
-            >
-              Websites That{" "}
-              <span className="bg-gradient-to-r from-green-700 to-orange-600 bg-clip-text text-transparent font-extrabold">
-                Adapt & Grow
-              </span>
-            </motion.h1>
-
-            {/* Subtitle - Better contrast */}
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-lg sm:text-xl text-gray-700 mb-8 leading-relaxed max-w-2xl font-medium"
-            >
-              Professional Next.js websites designed to evolve with your business. No upfront costs, no long-term
-              contracts. Just results that scale naturally.
-            </motion.p>
-
-            {/* Feature List - Improved visibility */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-              className="grid sm:grid-cols-2 gap-3 mb-8"
-            >
-              {["24-hour first preview", "Built on Next.js", "Mobile-first design", "Cancel anytime"].map(
-                (feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-green-600 mr-3 flex-shrink-0" />
-                    <span className="text-gray-800 font-medium">{feature}</span>
-                  </div>
-                ),
-              )}
-            </motion.div>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4"
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <Button
-                size="lg"
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
-                asChild
+                onClick={handleGetStarted}
+                className="iguana-button text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
               >
-                <Link href="/auth">
-                  Get Started Free
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
+                Get Started Today
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
 
               <Button
+                onClick={handleWatchDemo}
                 variant="outline"
-                size="lg"
-                className="border-2 border-gray-400 hover:border-green-500 hover:bg-green-50 text-gray-800 hover:text-green-800 px-8 py-6 text-lg rounded-xl transition-all duration-300 font-semibold"
-                asChild
+                className="border-green-600 text-green-600 hover:bg-green-50 px-8 py-4 text-lg font-semibold"
               >
-                <Link href="#pricing">View Pricing</Link>
+                <Play className="mr-2 h-5 w-5" />
+                Watch Demo
               </Button>
             </motion.div>
 
-            {/* Trust Indicators */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              className="mt-12 pt-8 border-t border-gray-300"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="mt-8 flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500"
             >
-              <p className="text-sm text-gray-600 mb-4 font-medium">Trusted by businesses worldwide</p>
-              <div className="flex items-center space-x-8 opacity-70">
-                <Image
-                  src="/nextjs-logo.png"
-                  alt="Next.js"
-                  width={60}
-                  height={30}
-                  className="h-6 w-auto object-contain"
-                />
-                <Image
-                  src="/vercel-logo.png"
-                  alt="Vercel"
-                  width={60}
-                  height={30}
-                  className="h-6 w-auto object-contain"
-                />
-                <Image
-                  src="/tailwind-logo.png"
-                  alt="Tailwind"
-                  width={60}
-                  height={30}
-                  className="h-6 w-auto object-contain"
-                />
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                No monthly fees
+              </div>
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                5-10 day delivery
+              </div>
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Mobile optimized
               </div>
             </motion.div>
           </motion.div>
 
-          {/* Right Content - Hero Image */}
+          {/* Right Column - Hero Image */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-            className="relative lg:h-[600px] flex items-center justify-center"
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="relative"
           >
-            {/* Main Hero Image */}
-            <div className="relative w-full max-w-lg mx-auto">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-orange-400/20 rounded-3xl blur-3xl transform rotate-6"></div>
-              <div className="relative bg-white rounded-3xl shadow-2xl p-8 border border-gray-200">
-                <Image
-                  src="/iguana-hero.png"
-                  alt="Professional Website Design"
-                  width={400}
-                  height={300}
-                  className="w-full h-auto rounded-2xl"
-                  priority
-                />
-
-                {/* Floating Stats Cards */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1, duration: 0.6 }}
-                  className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-4 border border-gray-200"
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-semibold text-gray-800">Live & Growing</span>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.2, duration: 0.6 }}
-                  className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-4 border border-gray-200"
-                >
-                  <div className="flex items-center space-x-2">
-                    <Rocket className="w-4 h-4 text-orange-500" />
-                    <span className="text-sm font-semibold text-gray-800">Fast Deploy</span>
-                  </div>
-                </motion.div>
-              </div>
+            <div className="relative z-10">
+              <img
+                src="/iguana-hero.png"
+                alt="Site Iguana - Professional Website Creation"
+                className="w-full h-auto max-w-lg mx-auto lg:max-w-none"
+              />
             </div>
+
+            {/* Floating Elements */}
+            <motion.div
+              animate={{ y: [-10, 10, -10] }}
+              transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+              className="absolute top-10 right-10 bg-white rounded-lg shadow-lg p-4 hidden lg:block"
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium">Website Live!</span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              animate={{ y: [10, -10, 10] }}
+              transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut", delay: 1 }}
+              className="absolute bottom-10 left-10 bg-white rounded-lg shadow-lg p-4 hidden lg:block"
+            >
+              <div className="text-sm">
+                <div className="font-medium text-gray-900">Mobile Ready</div>
+                <div className="text-gray-500">100% Responsive</div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
@@ -200,18 +146,18 @@ export function HeroSection() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:block"
+        transition={{ duration: 1, delay: 1.5 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
       >
         <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-          className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center cursor-pointer hover:border-green-500 transition-colors"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+          className="w-6 h-10 border-2 border-green-600 rounded-full flex justify-center"
         >
           <motion.div
             animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-            className="w-1 h-3 bg-gray-500 rounded-full mt-2"
+            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+            className="w-1 h-3 bg-green-600 rounded-full mt-2"
           />
         </motion.div>
       </motion.div>

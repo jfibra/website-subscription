@@ -1,11 +1,13 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Plus_Jakarta_Sans } from "next/font/google"
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import "./globals.css"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import { Toaster } from "@/components/ui/toaster"
 import Script from "next/script"
 import { ConditionalLayoutWrapper } from "@/components/layout/conditional-layout-wrapper"
+import { usePathname } from "next/navigation" // Import usePathname
+import { useEffect } from "react" // Import useEffect
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const plusJakarta = Plus_Jakarta_Sans({
@@ -23,7 +25,7 @@ export const metadata: Metadata = {
     description: "Professional websites built for you by Site Iguana. Pay monthly, no upfront costs.",
     images: ["/site-iguana-logo.png"],
   },
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -31,6 +33,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname() // Get current pathname
+
+  useEffect(() => {
+    // Scroll to top on route change
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <head>

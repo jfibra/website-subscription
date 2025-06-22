@@ -3,8 +3,9 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ChevronDown, User } from "lucide-react"
+import { Menu, X, ChevronDown, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -15,8 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { createSupabaseClient } from "@/lib/supabase/client"
-import { LogoutButton } from "@/components/logout-button"
-// import { IguanaIcon } from "@/components/iguana/iguana-icons"
 
 const navItems = [
   {
@@ -54,8 +53,8 @@ export function Navbar() {
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [isLoadingUser, setIsLoadingUser] = useState(true)
-  const [userRole, setUserRole] = useState<string | null>(null)
 
+  const router = useRouter()
   const supabase = createSupabaseClient()
 
   useEffect(() => {
@@ -78,23 +77,16 @@ export function Navbar() {
         if (session?.user) {
           const { data: profileData } = await supabase
             .from("users")
-            .select("first_name, last_name, profile_image, roles ( name )")
+            .select("first_name, last_name, profile_image")
             .eq("id", session.user.id)
             .single()
 
           if (profileData) {
             setUserProfile(profileData)
-            // @ts-ignore
-            setUserRole(profileData.roles?.name || "user")
-          } else {
-            setUserRole("user")
           }
-        } else {
-          setUserRole(null)
         }
       } catch (error) {
         console.error("Error fetching user:", error)
-        setUserRole(null)
       } finally {
         setIsLoadingUser(false)
       }
@@ -108,25 +100,20 @@ export function Navbar() {
         try {
           const { data: profileData } = await supabase
             .from("users")
-            .select("first_name, last_name, profile_image, roles ( name )")
+            .select("first_name, last_name, profile_image")
             .eq("id", session.user.id)
             .single()
           if (profileData) {
             setUserProfile(profileData)
-            // @ts-ignore
-            setUserRole(profileData.roles?.name || "user")
           } else {
             setUserProfile(null)
-            setUserRole("user")
           }
         } catch (error) {
           console.error("Error fetching user on auth change:", error)
           setUserProfile(null)
-          setUserRole(null)
         }
       } else {
         setUserProfile(null)
-        setUserRole(null)
       }
       setIsLoadingUser(false)
     })
@@ -161,6 +148,19 @@ export function Navbar() {
     e.stopPropagation()
     setIsMobileMenuOpen(!isMobileMenuOpen)
     if (isMobileMenuOpen) setActiveSubmenu(null)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push("/")
+    } catch (error) {
+      console.error("Error logging out:", error)
+    }
+  }
+
+  const navigateTo = (path: string) => {
+    router.push(path)
   }
 
   return (
@@ -235,15 +235,13 @@ export function Navbar() {
               <>
                 {user ? (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-10 w-10 rounded-full ml-4">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={userProfile?.profile_image || ""} />
-                          <AvatarFallback className="bg-green-100 text-green-600">
-                            {userProfile?.first_name?.[0] || user.email?.[0]?.toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Button>
+                    <DropdownMenuTrigger className="relative h-10 w-10 rounded-full ml-4 hover:bg-green-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={userProfile?.profile_image || ""} alt="Profile" />
+                        <AvatarFallback className="bg-green-100 text-green-600">
+                          {userProfile?.first_name?.[0] || user.email?.[0]?.toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56" align="end" forceMount>
                       <div className="flex items-center justify-start gap-2 p-2">
@@ -255,32 +253,23 @@ export function Navbar() {
                         </div>
                       </div>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href={userRole === "admin" ? "/admin" : "/user/dashboard"} className="cursor-pointer">
-                          <User className="mr-2 h-4 w-4" />
-                          Dashboard
-                        </Link>
+                      <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo("/user/dashboard")}>
+                        <User className="mr-2 h-4 w-4" />
+                        Dashboard
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/user/profile" className="cursor-pointer">
-                          <User className="mr-2 h-4 w-4" />
-                          Profile
-                        </Link>
+                      <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo("/user/profile")}>
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild className="text-red-600">
-                        <div>
-                          <LogoutButton
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-start p-0 h-auto text-red-600"
-                          />
-                        </div>
+                      <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Link href="/auth/login" className="ml-4">
+                  <Link href="/auth" className="ml-4">
                     <Button className="iguana-button text-white shadow-md hover:shadow-lg transition-all">
                       Get Started
                     </Button>
@@ -367,27 +356,37 @@ export function Navbar() {
                           <br />
                           <span className="text-xs">{user.email}</span>
                         </div>
-                        <Link
-                          href={userRole === "admin" ? "/admin" : "/user/dashboard"}
-                          className="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md"
-                          onClick={() => setIsMobileMenuOpen(false)}
+                        <button
+                          onClick={() => {
+                            navigateTo("/user/dashboard")
+                            setIsMobileMenuOpen(false)
+                          }}
+                          className="block w-full text-left px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md"
                         >
                           Dashboard
-                        </Link>
-                        <Link
-                          href="/user/profile"
-                          className="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md"
-                          onClick={() => setIsMobileMenuOpen(false)}
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigateTo("/user/profile")
+                            setIsMobileMenuOpen(false)
+                          }}
+                          className="block w-full text-left px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md"
                         >
                           Profile
-                        </Link>
-                        <div className="px-3 py-2">
-                          <LogoutButton variant="ghost" className="w-full justify-start text-red-600 p-0" />
-                        </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleLogout()
+                            setIsMobileMenuOpen(false)
+                          }}
+                          className="block w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
+                        >
+                          Logout
+                        </button>
                       </>
                     ) : (
                       <div className="px-3 py-3">
-                        <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
                           <Button className="w-full iguana-button text-white">Get Started</Button>
                         </Link>
                       </div>

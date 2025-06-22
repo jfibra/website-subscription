@@ -1,12 +1,21 @@
 import { Resend } from "resend"
 
-if (!process.env.RESEND_API_KEY) {
-  throw new Error("RESEND_API_KEY is not set")
+const isServer = typeof window === "undefined"
+
+// Only instantiate on the server to avoid env errors in the browser bundle
+export const resend = isServer && process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+
+if (isServer && !resend && process.env.NODE_ENV !== "production") {
+  // Only throw in development if not initialized, to prevent silent failures
+  // In production, we'll rely on the `if (!resend)` checks in the functions
+  console.error("RESEND_API_KEY is not set on the server. Please ensure it's configured in your environment.")
 }
 
-export const resend = new Resend(process.env.RESEND_API_KEY)
-
 export const sendWelcomeEmail = async (email: string, firstName: string) => {
+  if (!resend) {
+    console.error("Resend not initialized for sendWelcomeEmail. API Key might be missing or not on server.")
+    return { success: false, error: "Resend not initialized (API Key missing or not on server)" }
+  }
   try {
     const { data, error } = await resend.emails.send({
       from: `${process.env.NEXT_PUBLIC_APP_NAME} <noreply@yourdomain.com>`,
@@ -17,7 +26,6 @@ export const sendWelcomeEmail = async (email: string, firstName: string) => {
           <h1 style="color: #333; text-align: center;">Welcome to ${process.env.NEXT_PUBLIC_APP_NAME}!</h1>
           <p>Hi {{userName}},</p>
           <p>Thank you for joining ${process.env.NEXT_PUBLIC_APP_NAME}! We're excited to help you create amazing websites.</p>
-          <p>Here's what you can do next:</p>
           <ul>
             <li>Complete your profile setup</li>
             <li>Browse our website templates</li>
@@ -47,6 +55,98 @@ export const sendWelcomeEmail = async (email: string, firstName: string) => {
   }
 }
 
+export const sendWebsiteRequestConfirmation = async (
+  email: string,
+  userName: string,
+  websiteTitle: string,
+  requestId: number,
+) => {
+  if (!resend) {
+    console.error(
+      "Resend not initialized for sendWebsiteRequestConfirmation. API Key might be missing or not on server.",
+    )
+    return { success: false, error: "Resend not initialized (API Key missing or not on server)" }
+  }
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `${process.env.NEXT_PUBLIC_APP_NAME} <noreply@yourdomain.com>`,
+      to: [email],
+      subject: `Website Request Confirmation - ${websiteTitle}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #059669; margin-bottom: 10px;">🎉 Website Request Received!</h1>
+            <p style="color: #6b7280; font-size: 18px;">Thank you for choosing Site Iguana</p>
+          </div>
+          
+          <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+            <h2 style="color: #059669; margin-top: 0;">Request Details</h2>
+            <p><strong>Website Title:</strong> ${websiteTitle}</p>
+            <p><strong>Request ID:</strong> #${requestId}</p>
+            <p><strong>Submitted by:</strong> ${userName}</p>
+            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+          </div>
+          
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #374151;">What happens next?</h3>
+            <ol style="color: #6b7280; line-height: 1.6;">
+              <li><strong>Review (24 hours):</strong> Our team will review your request and create a detailed proposal</li>
+              <li><strong>Approval & Payment:</strong> Once approved, you'll choose your subscription plan and set up payment</li>
+              <li><strong>Development:</strong> After payment confirmation, we'll start building your website</li>
+            </ol>
+          </div>
+          
+          <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+            <h3 style="color: #1d4ed8; margin-top: 0;">💳 Subscription Plans</h3>
+            <p style="color: #374151; margin-bottom: 15px;">Choose from our flexible monthly plans:</p>
+            <ul style="color: #6b7280; line-height: 1.6;">
+              <li><strong>Basic ($99/month):</strong> Perfect for small businesses</li>
+              <li><strong>Standard ($199/month):</strong> Growing businesses with more features</li>
+              <li><strong>Premium ($399/month):</strong> Enterprise-level websites</li>
+            </ul>
+            <p style="color: #374151; font-size: 14px; margin-top: 15px;">
+              <em>Your subscription starts only after you approve our proposal. No hidden fees, cancel anytime.</em>
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_SITE_URL}/user/dashboard" 
+               style="background-color: #059669; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+              Check Request Status
+            </a>
+          </div>
+          
+          <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px;">
+            <p style="color: #6b7280; font-size: 14px;">
+              <strong>Need to make changes?</strong> No problem! You can contact our support team or check your request status anytime from your dashboard.
+            </p>
+            <p style="color: #6b7280; font-size: 14px;">
+              Questions? Reply to this email or visit our <a href="${process.env.NEXT_PUBLIC_SITE_URL}/support" style="color: #059669;">support center</a>.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px;">
+              Best regards,<br>
+              The ${process.env.NEXT_PUBLIC_APP_NAME} Team
+            </p>
+          </div>
+        </div>
+      `,
+    })
+
+    if (error) {
+      console.error("Failed to send website request confirmation:", error)
+      return { success: false, error }
+    }
+
+    return { success: true, data }
+  } catch (error) {
+    console.error("Error sending website request confirmation:", error)
+    return { success: false, error }
+  }
+}
+
 export const sendPaymentSuccessEmail = async (
   email: string,
   userName: string,
@@ -54,6 +154,10 @@ export const sendPaymentSuccessEmail = async (
   amount: number,
   planName: string,
 ) => {
+  if (!resend) {
+    console.error("Resend not initialized for sendPaymentSuccessEmail. API Key might be missing or not on server.")
+    return { success: false, error: "Resend not initialized (API Key missing or not on server)" }
+  }
   try {
     const { data, error } = await resend.emails.send({
       from: `${process.env.NEXT_PUBLIC_APP_NAME} <noreply@yourdomain.com>`,
@@ -107,6 +211,12 @@ export const sendSupportTicketNotification = async (
   subject: string,
   ticketId: number,
 ) => {
+  if (!resend) {
+    console.error(
+      "Resend not initialized for sendSupportTicketNotification. API Key might be missing or not on server.",
+    )
+    return { success: false, error: "Resend not initialized (API Key missing or not on server)" }
+  }
   try {
     const { data, error } = await resend.emails.send({
       from: `${process.env.NEXT_PUBLIC_APP_NAME} <noreply@yourdomain.com>`,

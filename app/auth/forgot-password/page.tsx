@@ -1,116 +1,43 @@
-"use client"
-
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { createSupabaseClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
-import { Loader2, CheckCircle, ArrowLeft } from "lucide-react"
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const router = useRouter()
-  const supabase = createSupabaseClient()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      })
-
-      if (resetError) {
-        setError(resetError.message)
-        return
-      }
-
-      setSuccess(true)
-    } catch (err: any) {
-      setError("An unexpected error occurred. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-            <CardTitle className="text-2xl font-bold text-green-700">Check your email</CardTitle>
-            <CardDescription>
-              We've sent a password reset link to <strong>{email}</strong>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-sm text-gray-600 mb-4">Click the link in the email to reset your password.</p>
-            <Button variant="outline" onClick={() => router.push("/auth/login")}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Login
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
+const ForgotPasswordPage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Reset password</CardTitle>
-          <CardDescription className="text-center">
-            Enter your email address and we'll send you a reset link
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Send reset link
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center text-sm">
-            <Link href="/auth/login" className="text-blue-600 hover:underline flex items-center justify-center">
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              Back to Login
-            </Link>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Forgot Your Password?</h2>
+        <p className="text-gray-700 text-base mb-4 text-center">
+          Enter your email address below and we'll send you a link to reset your password.
+        </p>
+        <form className="mb-4">
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+              Email Address
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="email"
+              type="email"
+              placeholder="Email"
+            />
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center justify-between">
+            <button
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              type="submit"
+            >
+              Reset Password
+            </button>
+          </div>
+        </form>
+        <hr className="mb-4" />
+        <div className="text-center">
+          <Link href="/auth" className="text-green-600 hover:text-green-700 hover:underline">
+            ← Back to Login
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
+
+export default ForgotPasswordPage

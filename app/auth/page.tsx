@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -49,17 +50,7 @@ export default function AuthPage() {
       }
 
       if (data.user) {
-        // Get user role to determine redirect
-        const { data: profile } = await supabase.from("users").select("roles(name)").eq("id", data.user.id).single()
-
-        // @ts-ignore
-        const userRole = profile?.roles?.name
-
-        if (userRole === "admin") {
-          router.push("/admin/dashboard")
-        } else {
-          router.push("/user/dashboard")
-        }
+        router.push("/user/dashboard")
       }
     } catch (err: any) {
       setError("An unexpected error occurred. Please try again.")
@@ -119,19 +110,34 @@ export default function AuthPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen pt-16 gradient-bg flex items-center justify-center">
-        <div className="max-w-md w-full mx-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-orange-50 to-green-100 flex items-center justify-center px-4">
+        <div className="max-w-md w-full">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <Card className="shadow-xl rounded-xl">
-              <CardContent className="p-8 text-center">
-                <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-                <h2 className="text-2xl font-bold text-green-700 mb-2">Check your email</h2>
-                <p className="text-gray-600 mb-4">
-                  We've sent a confirmation link to <strong>{successEmail}</strong>
-                </p>
-                <p className="text-sm text-gray-500 mb-6">
-                  Click the link in the email to confirm your account and complete registration.
-                </p>
+            <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+              <CardContent className="p-8 text-center space-y-6">
+                <div className="flex justify-center mb-6">
+                  <Image
+                    src="/site-iguana-logo-new.png"
+                    alt="Site Iguana logo"
+                    width={200}
+                    height={80}
+                    priority
+                    className="h-auto w-auto"
+                  />
+                </div>
+                <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-green-700">Check your email</h2>
+                  <p className="text-gray-600">
+                    We've sent a confirmation link to <br />
+                    <strong className="text-gray-900">{successEmail}</strong>
+                  </p>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    Click the link in the email to confirm your account and complete registration.
+                  </p>
+                </div>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -144,6 +150,7 @@ export default function AuthPage() {
                       confirmPassword: "",
                     })
                   }}
+                  className="w-full"
                 >
                   Back to Login
                 </Button>
@@ -156,22 +163,36 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen pt-16 gradient-bg flex items-center justify-center">
-      <div className="max-w-md w-full mx-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-orange-50 to-green-100 flex items-center justify-center px-4">
+      <div className="max-w-md w-full">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <div className="text-center mb-8">
-            <h1 className="font-plus-jakarta font-extrabold text-3xl md:text-4xl mb-4">
-              Welcome to <span className="gradient-text">WebFlow Pro</span>
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/site-iguana-logo-new.png"
+                alt="Site Iguana logo"
+                width={200}
+                height={80}
+                priority
+                className="h-auto w-auto"
+              />
+            </div>
+            <h1 className="font-bold text-3xl md:text-4xl mb-4 text-gray-900">
+              Welcome to <span className="text-green-600">Site Iguana</span>
             </h1>
             <p className="text-gray-600">Sign in to your account or create a new one to get started</p>
           </div>
 
-          <Card className="shadow-xl rounded-xl">
+          <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
             <CardContent className="p-0">
               <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 rounded-none rounded-t-lg">
-                  <TabsTrigger value="login">Sign In</TabsTrigger>
-                  <TabsTrigger value="register">Create Account</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 rounded-none rounded-t-lg h-12">
+                  <TabsTrigger value="login" className="text-sm font-medium">
+                    Sign In
+                  </TabsTrigger>
+                  <TabsTrigger value="register" className="text-sm font-medium">
+                    Create Account
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login" className="p-6 space-y-4">
@@ -186,7 +207,7 @@ export default function AuthPage() {
                           id="login-email"
                           type="email"
                           required
-                          className="pl-10"
+                          className="pl-10 h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                           placeholder="your@email.com"
                           value={loginData.email}
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
@@ -205,7 +226,7 @@ export default function AuthPage() {
                           id="login-password"
                           type={showPassword ? "text" : "password"}
                           required
-                          className="pl-10 pr-10"
+                          className="pl-10 pr-10 h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                           placeholder="Enter your password"
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
@@ -213,7 +234,7 @@ export default function AuthPage() {
                         />
                         <button
                           type="button"
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -221,26 +242,26 @@ export default function AuthPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">Remember me</span>
-                      </label>
-                      <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
+                    <div className="flex items-center justify-end">
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-sm text-green-600 hover:text-green-700 hover:underline font-medium"
+                      >
                         Forgot password?
                       </Link>
                     </div>
 
                     {error && (
-                      <Alert variant="destructive">
-                        <AlertDescription>{error}</AlertDescription>
+                      <Alert variant="destructive" className="border-red-200 bg-red-50">
+                        <AlertDescription className="text-red-800">{error}</AlertDescription>
                       </Alert>
                     )}
 
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button
+                      type="submit"
+                      className="w-full h-11 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                      disabled={isLoading}
+                    >
                       {isLoading ? "Signing in..." : "Sign In"}
                       {!isLoading && <ArrowRight className="ml-2 w-4 h-4" />}
                     </Button>
@@ -260,7 +281,7 @@ export default function AuthPage() {
                             id="register-firstName"
                             type="text"
                             required
-                            className="pl-10"
+                            className="pl-10 h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                             placeholder="John"
                             value={registerData.firstName}
                             onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
@@ -276,6 +297,7 @@ export default function AuthPage() {
                           id="register-lastName"
                           type="text"
                           required
+                          className="h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                           placeholder="Doe"
                           value={registerData.lastName}
                           onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
@@ -294,7 +316,7 @@ export default function AuthPage() {
                           id="register-email"
                           type="email"
                           required
-                          className="pl-10"
+                          className="pl-10 h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                           placeholder="your@email.com"
                           value={registerData.email}
                           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
@@ -313,7 +335,7 @@ export default function AuthPage() {
                           id="register-password"
                           type={showPassword ? "text" : "password"}
                           required
-                          className="pl-10 pr-10"
+                          className="pl-10 pr-10 h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                           placeholder="Create a password"
                           value={registerData.password}
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
@@ -321,7 +343,7 @@ export default function AuthPage() {
                         />
                         <button
                           type="button"
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -339,7 +361,7 @@ export default function AuthPage() {
                           id="confirm-password"
                           type={showPassword ? "text" : "password"}
                           required
-                          className="pl-10"
+                          className="pl-10 h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                           placeholder="Confirm your password"
                           value={registerData.confirmPassword}
                           onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
@@ -352,27 +374,31 @@ export default function AuthPage() {
                       <input
                         type="checkbox"
                         required
-                        className="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        className="mt-1 rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
                       />
                       <span className="ml-2 text-sm text-gray-600">
                         I agree to the{" "}
-                        <Link href="/terms" className="text-blue-600 hover:text-blue-500">
+                        <Link href="/terms" className="text-green-600 hover:text-green-700 hover:underline">
                           Terms of Service
                         </Link>{" "}
                         and{" "}
-                        <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
+                        <Link href="/privacy" className="text-green-600 hover:text-green-700 hover:underline">
                           Privacy Policy
                         </Link>
                       </span>
                     </div>
 
                     {error && (
-                      <Alert variant="destructive">
-                        <AlertDescription>{error}</AlertDescription>
+                      <Alert variant="destructive" className="border-red-200 bg-red-50">
+                        <AlertDescription className="text-red-800">{error}</AlertDescription>
                       </Alert>
                     )}
 
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button
+                      type="submit"
+                      className="w-full h-11 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                      disabled={isLoading}
+                    >
                       {isLoading ? "Creating account..." : "Create Account"}
                       {!isLoading && <ArrowRight className="ml-2 w-4 h-4" />}
                     </Button>
@@ -385,7 +411,7 @@ export default function AuthPage() {
           <div className="text-center mt-6">
             <p className="text-sm text-gray-600">
               Need help?{" "}
-              <Link href="/contact" className="text-blue-600 hover:text-blue-500">
+              <Link href="/contact" className="text-green-600 hover:text-green-700 hover:underline">
                 Contact our support team
               </Link>
             </p>

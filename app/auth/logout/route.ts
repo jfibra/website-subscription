@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 
 export async function POST() {
   try {
-    // Get the cookies
     const cookieStore = cookies()
+    const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
-    // Create a response that redirects to login
+    // Sign out from Supabase
+    await supabase.auth.signOut()
+
+    // Create response that redirects to login
     const response = NextResponse.redirect(
       new URL("/auth/login", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
     )
 
-    // Clear all possible Supabase auth cookies
+    // Clear all auth-related cookies
     const cookiesToClear = [
       "sb-access-token",
       "sb-refresh-token",
@@ -31,17 +35,6 @@ export async function POST() {
       })
     })
 
-    // Also try to clear with different paths
-    response.cookies.set("sb-access-token", "", {
-      maxAge: 0,
-      path: "/",
-    })
-
-    response.cookies.set("sb-refresh-token", "", {
-      maxAge: 0,
-      path: "/",
-    })
-
     return response
   } catch (error) {
     console.error("Logout error:", error)
@@ -51,6 +44,5 @@ export async function POST() {
 }
 
 export async function GET() {
-  // Handle GET requests the same way
   return POST()
 }

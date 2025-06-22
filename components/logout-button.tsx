@@ -1,39 +1,33 @@
 "use client"
 
-import { useState } from "react"
+import { LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { LogOutIcon } from "lucide-react"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { handleLogout } from "@/lib/auth-utils"
+import { useState } from "react"
 
 interface LogoutButtonProps {
-  variant?: "ghost" | "outline" | "default"
-  size?: "sm" | "default" | "lg"
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  size?: "default" | "sm" | "lg" | "icon"
   className?: string
-  showText?: boolean
 }
 
-export function LogoutButton({
-  variant = "ghost",
-  size = "default",
-  className = "",
-  showText = true,
-}: LogoutButtonProps) {
+export function LogoutButton({ variant = "ghost", size = "default", className = "" }: LogoutButtonProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleLogout = () => {
+  const onLogout = async () => {
     setIsLoggingOut(true)
-    // Simply redirect to the logout endpoint
-    window.location.href = "/auth/logout"
+    try {
+      await handleLogout()
+    } catch (error) {
+      console.error("Logout error:", error)
+      setIsLoggingOut(false)
+    }
   }
 
   return (
-    <Button variant={variant} size={size} className={className} onClick={handleLogout} disabled={isLoggingOut}>
-      {isLoggingOut ? (
-        <LoadingSpinner size={16} className={showText ? "mr-2" : ""} />
-      ) : (
-        <LogOutIcon className={showText ? "mr-2 h-4 w-4" : "h-4 w-4"} />
-      )}
-      {showText && (isLoggingOut ? "Logging out..." : "Logout")}
+    <Button variant={variant} size={size} className={className} onClick={onLogout} disabled={isLoggingOut}>
+      <LogOut className="mr-2 h-4 w-4" />
+      {isLoggingOut ? "Signing out..." : "Sign out"}
     </Button>
   )
 }

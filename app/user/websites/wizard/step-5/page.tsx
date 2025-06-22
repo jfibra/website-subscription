@@ -11,6 +11,7 @@ import { motion } from "framer-motion"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import type { SupabaseClient } from "@supabase/supabase-js"
+// import { sendWebsiteRequestConfirmation } from "@/lib/resend"
 
 export default function WizardStep5Page() {
   const router = useRouter()
@@ -136,6 +137,29 @@ export default function WizardStep5Page() {
 
       if (error) {
         throw error
+      }
+
+      // After successful database insertion (around line 120, after the website is inserted)
+      // Send confirmation email via server route
+      try {
+        const userEmail = (await supabase.auth.getUser()).data.user?.email
+        const userName = wizardData.step1?.businessName || "User"
+
+        if (userEmail) {
+          await fetch("/api/website-request/confirm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: userEmail,
+              userName,
+              websiteTitle: wizardData.step1?.businessName || "Your Website",
+              requestId: data.id,
+            }),
+          })
+        }
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError)
+        // Continue without failing the submission
       }
 
       // Handle logo upload if provided

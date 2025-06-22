@@ -1,64 +1,66 @@
 "use client"
 
-import { motion } from "framer-motion"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Sparkles } from "lucide-react"
+import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 export function CTASection() {
-  return (
-    <section className="py-20 relative overflow-hidden">
-      {/* Background with better contrast */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-green-900 to-gray-800"></div>
-      <div className="absolute inset-0 bg-black/20"></div>
+  const router = useRouter()
 
-      {/* Subtle pattern overlay */}
+  const handleGetStarted = () => {
+    router.push("/user/websites/wizard/start")
+  }
+
+  const handleViewPricing = () => {
+    router.push("/services#pricing")
+  }
+
+  return (
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-green-600 to-orange-500 relative overflow-hidden">
+      {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.3) 1px, transparent 0)`,
-            backgroundSize: "40px 40px",
-          }}
-        ></div>
+        <img src="/iguana-leaf-pattern.png" alt="" className="w-full h-full object-cover" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="relative z-10 max-w-4xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="font-plus-jakarta font-bold text-4xl md:text-5xl lg:text-6xl mb-6 text-white">
-            Launch Your Website Today
-          </h2>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-100 leading-relaxed">
-            Join hundreds of businesses who trust us with their online presence. Start with just $39/month.
+          <div className="flex justify-center mb-6">
+            <Sparkles className="h-12 w-12 text-white" />
+          </div>
+
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready to Transform Your Online Presence?</h2>
+
+          <p className="text-xl md:text-2xl text-green-100 mb-8 leading-relaxed">
+            Join hundreds of businesses that chose Site Iguana for their professional website. Get started today and see
+            your vision come to life.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              size="lg"
-              className="text-lg px-8 py-6 bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold"
-              asChild
+              onClick={handleGetStarted}
+              className="bg-white text-green-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
             >
-              <Link href="/auth">
-                Get Started Now <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
+              Start Your Website Now
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
+
             <Button
+              onClick={handleViewPricing}
               variant="outline"
-              size="lg"
-              className="text-lg px-8 py-6 border-2 border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 rounded-xl font-semibold"
-              asChild
+              className="border-white text-white hover:bg-white hover:text-green-600 px-8 py-4 text-lg font-semibold"
             >
-              <Link href="/contact">Talk to Us First</Link>
+              View Pricing
             </Button>
           </div>
 
-          <div className="mt-8 text-sm text-gray-300">
-            ✨ No contracts • 🚀 Cancel anytime • 💳 First preview in 24 hours
+          <div className="mt-8 text-green-100">
+            <p className="text-sm">✨ No setup fees • 🚀 Fast delivery • 📱 Mobile optimized • 🔒 Secure hosting</p>
           </div>
         </motion.div>
       </div>
