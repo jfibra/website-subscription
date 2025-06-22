@@ -5,17 +5,12 @@ const isServer = typeof window === "undefined"
 // Only instantiate on the server to avoid env errors in the browser bundle
 export const resend = isServer && process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
-if (isServer && !resend && process.env.NODE_ENV !== "production") {
-  // Only throw in development if not initialized, to prevent silent failures
-  // In production, we'll rely on the `if (!resend)` checks in the functions
-  console.error("RESEND_API_KEY is not set on the server. Please ensure it's configured in your environment.")
+if (isServer && !resend) {
+  throw new Error("RESEND_API_KEY is not set")
 }
 
 export const sendWelcomeEmail = async (email: string, firstName: string) => {
-  if (!resend) {
-    console.error("Resend not initialized for sendWelcomeEmail. API Key might be missing or not on server.")
-    return { success: false, error: "Resend not initialized (API Key missing or not on server)" }
-  }
+  if (!resend) return { success: false, error: "Resend not initialised (client side)" }
   try {
     const { data, error } = await resend.emails.send({
       from: `${process.env.NEXT_PUBLIC_APP_NAME} <noreply@yourdomain.com>`,
@@ -26,6 +21,7 @@ export const sendWelcomeEmail = async (email: string, firstName: string) => {
           <h1 style="color: #333; text-align: center;">Welcome to ${process.env.NEXT_PUBLIC_APP_NAME}!</h1>
           <p>Hi {{userName}},</p>
           <p>Thank you for joining ${process.env.NEXT_PUBLIC_APP_NAME}! We're excited to help you create amazing websites.</p>
+          <p>Here's what you can do next:</p>
           <ul>
             <li>Complete your profile setup</li>
             <li>Browse our website templates</li>
@@ -61,12 +57,7 @@ export const sendWebsiteRequestConfirmation = async (
   websiteTitle: string,
   requestId: number,
 ) => {
-  if (!resend) {
-    console.error(
-      "Resend not initialized for sendWebsiteRequestConfirmation. API Key might be missing or not on server.",
-    )
-    return { success: false, error: "Resend not initialized (API Key missing or not on server)" }
-  }
+  if (!resend) return { success: false, error: "Resend not initialised (client side)" }
   try {
     const { data, error } = await resend.emails.send({
       from: `${process.env.NEXT_PUBLIC_APP_NAME} <noreply@yourdomain.com>`,
@@ -154,10 +145,7 @@ export const sendPaymentSuccessEmail = async (
   amount: number,
   planName: string,
 ) => {
-  if (!resend) {
-    console.error("Resend not initialized for sendPaymentSuccessEmail. API Key might be missing or not on server.")
-    return { success: false, error: "Resend not initialized (API Key missing or not on server)" }
-  }
+  if (!resend) return { success: false, error: "Resend not initialised (client side)" }
   try {
     const { data, error } = await resend.emails.send({
       from: `${process.env.NEXT_PUBLIC_APP_NAME} <noreply@yourdomain.com>`,
@@ -211,12 +199,7 @@ export const sendSupportTicketNotification = async (
   subject: string,
   ticketId: number,
 ) => {
-  if (!resend) {
-    console.error(
-      "Resend not initialized for sendSupportTicketNotification. API Key might be missing or not on server.",
-    )
-    return { success: false, error: "Resend not initialized (API Key missing or not on server)" }
-  }
+  if (!resend) return { success: false, error: "Resend not initialised (client side)" }
   try {
     const { data, error } = await resend.emails.send({
       from: `${process.env.NEXT_PUBLIC_APP_NAME} <noreply@yourdomain.com>`,
